@@ -13,6 +13,7 @@ class Output :
     Output(Action *next, IOutput *output, IOValue *v, int valueSize);
     void Run();
     bool IsDone();
+	~Output();
   private:
     IOutput *mOutput;
     IOValue *values;

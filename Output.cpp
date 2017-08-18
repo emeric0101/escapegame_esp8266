@@ -1,6 +1,6 @@
 #include "Output.h"
 
-Output::Output(Action *next, IOutput *output, IOValue *v, int valueSize) : Action(next), mOutput(output), valueSize(valueSize)
+Output::Output(Action *next, IOutput *output, IOValue *v, int valueSize) : Action(next), mOutput(output), values(v), valueSize(valueSize)
 {
   values = v;
 }
@@ -13,4 +13,8 @@ void Output::Run() {
 }
 bool Output::IsDone() {
   return true;
+}
+Output::~Output() 
+{
+	delete values;
 }

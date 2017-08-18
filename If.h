@@ -11,6 +11,7 @@ class If : public Action
 {
     public:
     If(Action *next, IInput *input, IOValue *conditions, int conditionSize);
+	~If();
     void Run();
     bool IsDone();
   private:

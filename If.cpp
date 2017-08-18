@@ -5,6 +5,11 @@ If::If(Action *next, IInput *input, IOValue *conditions, int conditionSize) : Ac
   
 }
 
+If::~If() 
+{
+	delete conditions;
+}
+
 bool If::IsDone() {
   return result;
 }
