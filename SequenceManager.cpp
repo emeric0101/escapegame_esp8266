@@ -3,20 +3,25 @@
 SequenceManager::SequenceManager(Hardware &hw) : hw(&hw)
 {
   Serial.println("Init");
-  IOValue *values = new IOValue[2];
-  values[0].channel = 1;
+  IOValue *values = new IOValue[1];
+  values[0].channel = 0;
   values[0].result = true;
-  values[1].channel = 2;
-  values[1].result = false;
+  
+    IOValue *values2 = new IOValue[1];
+  values2[0].channel = 0;
+  values2[0].result = false;
+
 
   IOValue *conditions = new IOValue[1];
   conditions[0].channel = 0;
   conditions[0].result = false;
-  Buzzer *buzzer = new Buzzer(NULL, &hw, 440);
+  LCD *lcd2 = new LCD(NULL, &hw, "Ca va ?");
+  Output *output2 = new Output(lcd2, &hw, values2, 1);
+  Buzzer *buzzer = new Buzzer(output2, &hw, 440);
   If *out = new If(buzzer, &hw, conditions, 1);
-  LCD *lcd = new LCD(out, &hw, "Ceci est un message");
+  LCD *lcd = new LCD(out, &hw, "Coucou");
   Wait *wait = new Wait(lcd, 2);
-  firstAction = new Output(wait, &hw, values, 2);
+  firstAction = new Output(wait, &hw, values, 1);
 }
 
 SequenceManager::~SequenceManager() 
@@ -38,6 +43,7 @@ void SequenceManager::Run()
     return;
   }
   current->Run();
+  delay(1000);
   
   if (current->IsDone()) {
     current = current->GetNextAction();

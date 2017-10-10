@@ -19,7 +19,7 @@ void If::Run()
   result = true;
   for (int i=0;i<conditionSize;i++)
   {
-    result *= (mInput->ReadInput(conditions[i].channel) == conditions[i].result);
+    result *= (mInput->DigitalRead(conditions[i].channel) == conditions[i].result);
   }
 }
 

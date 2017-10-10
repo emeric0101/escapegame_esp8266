@@ -1,0 +1,28 @@
+<NotepadPlus>
+    <Project name="Challenge">
+        <File name="Action.cpp" />
+        <File name="Action.h" />
+        <File name="Buzzer.cpp" />
+        <File name="Buzzer.h" />
+        <File name="Hardware.cpp" />
+        <File name="Hardware.h" />
+        <File name="IBuzzer.h" />
+        <File name="If.cpp" />
+        <File name="If.h" />
+        <File name="IInput.h" />
+        <File name="ILCD.h" />
+        <File name="IOutput.h" />
+        <File name="IOValue.h" />
+        <File name="LCD.cpp" />
+        <File name="LCD.h" />
+        <File name="Output.cpp" />
+        <File name="Output.h" />
+        <File name="SequenceFactory.cpp" />
+        <File name="SequenceFactory.h" />
+        <File name="SequenceManager.cpp" />
+        <File name="SequenceManager.h" />
+        <File name="torpille1.ino" />
+        <File name="Wait.cpp" />
+        <File name="Wait.h" />
+    </Project>
+</NotepadPlus>

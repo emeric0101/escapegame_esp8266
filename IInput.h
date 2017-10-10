@@ -4,7 +4,7 @@
 class IInput 
 {
   public:
-    virtual bool ReadInput(int channel) = 0;
+    virtual bool DigitalRead(int channel) = 0;
 };
 
 #endif

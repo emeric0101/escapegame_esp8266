@@ -1,6 +1,8 @@
 #ifndef SEQUENCE_FACTORY_H
 #define  SEQUENCE_FACTORY_H
 #include <ESP8266WiFi.h>
+#include <ArduinoJson.h>
+
 
 #include "Hardware.h"
 #include "Action.h"
