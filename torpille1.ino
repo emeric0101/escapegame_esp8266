@@ -8,7 +8,7 @@
 #include "SequenceFactory.h"
 
   Hardware hw;
-  //SequenceManager sequenceManager(hw);
+  SequenceManager sequenceManager(hw);
 
 bool testMode = false;
 Adafruit_MCP23017 mcp;
@@ -84,16 +84,20 @@ WiFi.mode(WIFI_OFF);
 			testMode = true;
 			break;
 		}
-		delay(1000);
+		delay(500);
 	}
 	if (!testMode) {
-		hw.LcdMessage("READY");
+		hw.LcdMessage("Starting torpille...");
+		SequenceFactory sequenceFactory(hw);
+		sequenceFactory.Load("");
+		
+		sequenceManager.Init(sequenceFactory.GetDuration(), sequenceFactory.GetActions());
+
 	}
 
 
 
-	/*SequenceFactory sequenceFactory(hw);
-	sequenceFactory.Load("");*/
+
 
 }
 void loop()
@@ -152,7 +156,7 @@ void loop()
 	}
 	
 
-	//sequenceManager.Run();
+	sequenceManager.Run();
 
 }
 

@@ -28,6 +28,7 @@ class Hardware :
     bool DigitalRead(int channel);
     void DigitalWrite(int channel, bool value);
 	void print(String msg);
+	String GetLanguage();
 	void home();
 	Adafruit_MCP23017 *GetMcp1();
 			bool checkHardware();

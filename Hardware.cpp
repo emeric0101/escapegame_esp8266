@@ -58,15 +58,6 @@ void Hardware::Init()
 	mcp3.pullUp(10, HIGH);
 	
 	
-	
-	
-	// Capteurs charges
-	/*pinMode(12, INPUT_PULLUP);
-	pinMode(13, INPUT_PULLUP);
-	pinMode(15, INPUT); // no pullup on this input...
-	
-	pinMode(14, OUTPUT); // Sortie vers enigme suivante
-	*/
 	for (int i=0; i<16;i++) {
 		mcp1.pinMode(i, INPUT); 
 		mcp1.pullUp(i, HIGH); // turn on a 100K pullup internally
@@ -77,16 +68,6 @@ void Hardware::Init()
 	mcp3.pinMode(3, OUTPUT); // charge 2
 	mcp3.pinMode(4, OUTPUT); // charge 3
 	
-	// Séquence de test
-	mcp2.digitalWrite(0, HIGH);
-	mcp2.digitalWrite(2, HIGH);
-	mcp2.digitalWrite(12, HIGH);
-	delay(500);
-	mcp2.digitalWrite(0, LOW);
-	mcp2.digitalWrite(2, LOW);
-	mcp2.digitalWrite(12, LOW);
-
-
 	delay(500);
 }
 
@@ -202,5 +183,12 @@ void Hardware::DigitalWrite(int channel, bool value)
 		mcp3.digitalWrite(4, v);
 	
 
+}
+
+String Hardware::GetLanguage() {
+	if (DigitalRead(16)) {
+		return "fr";
+	}
+	return "en";
 }
 

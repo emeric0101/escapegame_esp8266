@@ -19,8 +19,12 @@ class SequenceFactory
   public:
 	SequenceFactory(Hardware &hw);
 	void Load(String scenario);
+	int GetDuration();
+	Action* GetActions();
   private:
 	Hardware &hw;
+	int duration = 0;
+	Action *firstAction = NULL;
 };
 
 #endif

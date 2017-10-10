@@ -8,6 +8,7 @@ class Action
     Action* GetNextAction();
     virtual void Run() = 0;
     virtual bool IsDone() = 0;
+	void Add(Action *next);
 
   private:
     Action *nextAction = 0;

@@ -3,119 +3,58 @@
 SequenceFactory::SequenceFactory(Hardware &hw) : hw(hw) 
 {
 }
-
-class StringList 
-{
-	public: 
-		StringList(String txt, StringList *next) : txt(txt), next(next) {
-			
-		}
-			
-		int Count() {
-			int i = 1;
-			StringList *current = next;
-			while (current != NULL) {
-				i++;
-				current = current->GetNext();
-			}
-			return i;
-		}
-		StringList* GetNext() {return next;}
-		String GetTxt() {return txt;}
-		void SetNext(StringList *v) {next = v;}
-		void Add(String txt) 
-		{
-			if (next == NULL) {
-				next = new StringList(txt, NULL);
-				return;
-			}
-			StringList *current = next;
-			StringList *later = next;
-			while (current != NULL) {
-				later = current;
-				current = current->GetNext();
-			}
-			later->SetNext(new StringList(txt, NULL));
-		}
-	private:
-		String txt;
-		StringList *next = NULL;
-};
-
-
-StringList* SplitString(String str, char delimiter) 
-{
-	StringList *lines = NULL;
-	String current = "";
-	for (int i = 0; i< str.length();i++) 
-	{
-		if (str[i] == delimiter) 
-		{
-			if (lines == NULL) {
-				lines = new StringList(current, NULL);
-			}
-			else {
-				lines->Add(current);
-			}
-			current = "";
-			continue;
-		}
-		current += str[i];
-	}
-	if (lines == NULL) {
-		lines = new StringList(current, NULL);
-	}
-	else {
-		lines->Add(current);
-	}
-	return lines;
+int SequenceFactory::GetDuration() {
+	return duration;
+}
+Action* SequenceFactory::GetActions() {
+	return firstAction;
 }
 
 
 void SequenceFactory::Load(String scenario) 
-{
-	scenario = "output:2=true,3=false,4=true;if:1=true,2=true;wait:5";
-	Action *firstAction;
-	StringList *currentStr = SplitString(scenario, ';');
-	while (currentStr != NULL) {
-		String content = currentStr->GetTxt();
-		// Line by line
-		StringList *currentWords = SplitString(content, ':');
-		String action = currentWords->GetTxt();
-		String args = currentWords->GetNext()->GetTxt();
+{		
+	const size_t bufferSize = 42*JSON_ARRAY_SIZE(1) + 6*JSON_ARRAY_SIZE(2) + 12*JSON_ARRAY_SIZE(3) + JSON_ARRAY_SIZE(33) + 7*JSON_OBJECT_SIZE(2) + 30*JSON_OBJECT_SIZE(3) + 1450;
+	DynamicJsonBuffer jsonBuffer(bufferSize);
+
+	const char* json = "{\"time\":60,\"enigme\":[{\"type\":\"output\",\"arg1\":[4,5,7],\"result\":[true,true,true]},{\"type\":\"if\",\"arg1\":[2,8,11],\"result\":[true,false,false]},{\"type\":\"if\",\"arg1\":[2],\"result\":[false]},{\"type\":\"wait\",\"arg1\":[2],\"result\":[false]},{\"type\":\"output\",\"arg1\":[4],\"result\":[false]},{\"type\":\"buzzer\",\"arg1\":[440],\"result\":[false]},{\"type\":\"output\",\"arg1\":[1000],\"result\":[true]},{\"type\":\"if\",\"arg1\":[18],\"result\":[false]},{\"type\":\"output\",\"arg1\":[1000],\"result\":[false]},{\"type\":\"lcd\",\"msg\":{\"fr\":\"Etape 1 : OK\nRebrancher cables\",\"en\":\"Step 1 : Done\nReconnect wires\"}},{\"type\":\"if\",\"arg1\":[8,11],\"result\":[true,true]}]}";
+	JsonObject& root = jsonBuffer.parseObject(json);
+	duration = root["time"]; // 60
+
+	JsonArray& enigme = root["enigme"];
+	for (int i=0;i<root["enigme"].size();i++) {
+		Action* currentAction;
+		JsonObject& currentActionJson = enigme[i];
+		String type = currentActionJson["type"];
+		// Args
+		JsonArray& argsJson = currentActionJson["arg1"];
+		JsonArray& resultJson = currentActionJson["result"];
+		IOValue *args = new IOValue[argsJson.size()];
+		Serial.println(type);
+		for (int a=0;a<argsJson.size(); a++) {
+			args[a].channel = argsJson[a];
+			args[a].result = resultJson[a];
+		}
 		
-		StringList *currentArgs = SplitString(args, ',');
-		int nbArgs = currentArgs->Count();
-		IOValue *IOArgs = new IOValue[nbArgs];
-		int i = 0;
-		while (currentArgs != NULL) {
-			StringList *equal = SplitString(currentArgs->GetTxt(), '=');
-			int nb = equal->Count();
-			IOValue arg;
-			arg.channel = atoi(equal->GetTxt().c_str());
-			if (nb>1) {
-				arg.result = equal->GetNext()->GetTxt() == "true";
-			}
-			Serial.println(arg.channel);
-			Serial.println(arg.result);
-			Serial.println(" ");
-			IOArgs[i] = arg;
-			currentArgs = currentArgs->GetNext();
-			i++;
-
+		if (type == "output") {
+			currentAction = new Output(NULL, &hw, args, static_cast<int>(argsJson.size()));
 		}
-		Action *current;
-		if (action == "output") {
-			current = new Output(NULL, &hw, IOArgs, nbArgs);
+		if (type == "if") {
+			currentAction = new If(NULL, &hw, args, static_cast<int>(argsJson.size()));
 		}
-
-		if (firstAction == NULL) {
-			firstAction = current;
+		if (type == "buzzer") {
+			currentAction = new Buzzer(NULL, &hw, args[0].channel);
 		}
-		else {
-			//firstAction.Add(current); FIXME!!
+		if (type == "lcd") {
+			currentAction = new LCD(NULL, &hw, currentActionJson["msg"]["fr"], currentActionJson["msg"]["en"]);
 		}
-		currentStr = currentStr->GetNext();
+		if (type == "wait") {
+			currentAction = new Wait(NULL, args[0].channel);
+		}
+		
+		if (firstAction == NULL)
+			firstAction = currentAction;
+		else
+			firstAction->Add(currentAction);
+		
 	}
-
 }

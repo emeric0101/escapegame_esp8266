@@ -9,12 +9,13 @@ class LCD :
   public Action
 {
   public:
-    LCD(Action *next, ILCD *lcd, String msg);
+    LCD(Action *next, ILCD *lcd, String msgFr, String msgEn);
     void Run();
     bool IsDone();
   private:
     ILCD *mLcd;
-    String msg;
+    String msgEn;
+	String msgFr;
 };
 
 #endif

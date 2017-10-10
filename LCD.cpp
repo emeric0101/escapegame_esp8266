@@ -1,6 +1,6 @@
 #include "LCD.h"
 
-LCD::LCD(Action *next, ILCD *lcd, String msg) : Action(next), mLcd(lcd), msg(msg)
+LCD::LCD(Action *next, ILCD *lcd, String msgFr, String msgEn) : Action(next), mLcd(lcd), msgFr(msgFr), msgEn(msgEn)
 {
   
 }
@@ -10,6 +10,11 @@ bool LCD::IsDone() {
 }
 
 void LCD::Run() {
-  mLcd->LcdMessage(msg);
+	if (mLcd->GetLanguage() == "fr") {
+		  mLcd->LcdMessage(msgFr);
+	}
+	else {
+		  mLcd->LcdMessage(msgEn);
+	}
 }
 

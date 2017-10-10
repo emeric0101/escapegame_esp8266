@@ -3,26 +3,28 @@
 SequenceManager::SequenceManager(Hardware &hw) : hw(&hw)
 {
   Serial.println("Init");
-  IOValue *values = new IOValue[1];
-  values[0].channel = 0;
-  values[0].result = true;
-  
-    IOValue *values2 = new IOValue[1];
-  values2[0].channel = 0;
-  values2[0].result = false;
-
-
-  IOValue *conditions = new IOValue[1];
-  conditions[0].channel = 0;
-  conditions[0].result = false;
-  LCD *lcd2 = new LCD(NULL, &hw, "Ca va ?");
-  Output *output2 = new Output(lcd2, &hw, values2, 1);
-  Buzzer *buzzer = new Buzzer(output2, &hw, 440);
-  If *out = new If(buzzer, &hw, conditions, 1);
-  LCD *lcd = new LCD(out, &hw, "Coucou");
-  Wait *wait = new Wait(lcd, 2);
-  firstAction = new Output(wait, &hw, values, 1);
 }
+
+void SequenceManager::Init(int duration, Action* firstAction) {
+	  
+  // Valeurs par defaut:
+  	// led 3
+	hw->DigitalWrite(11, true);
+	hw->DigitalWrite(12, true);
+	hw->DigitalWrite(13, true);
+	// 10 leds blanche à eéro
+	for (int i=0;i<10;i++) 
+	{
+		hw->DigitalWrite(i, false);
+	}
+	// solenoide coupés
+	hw->DigitalWrite(1000, false);
+	hw->DigitalWrite(1001, false);
+	hw->DigitalWrite(1002, false);
+	this->firstAction = firstAction;
+  
+}
+
 
 SequenceManager::~SequenceManager() 
 {
@@ -42,6 +44,7 @@ void SequenceManager::Run()
     Serial.println("DONE");
     return;
   }
+  Serial.println("acting...");
   current->Run();
   delay(1000);
   

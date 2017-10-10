@@ -16,6 +16,7 @@ class SequenceManager
     SequenceManager(Hardware &hw);
     ~SequenceManager();
     void Run();
+	void Init(int duration, Action* firstAction);
   private:
     Hardware *hw;
     Action *firstAction = NULL;

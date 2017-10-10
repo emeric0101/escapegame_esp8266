@@ -5,6 +5,7 @@ class ILCD
 {
   public:
     virtual void LcdMessage(String msg) = 0;
+	virtual String GetLanguage() = 0;
 };
 
 #endif

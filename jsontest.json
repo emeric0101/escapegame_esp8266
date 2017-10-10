@@ -1,0 +1,62 @@
+{
+	"time": 60,
+	"enigme": [
+		{
+			"type": "output",
+			"arg1": [4,5,7],
+			"result": [true, true, true]
+		},
+		{
+			"type": "if",
+			"arg1": [2,8,11],
+			"result": [true, false, false]
+		},
+		{
+			"type": "if",
+			"arg1": [2],
+			"result": [false]
+		},
+		{
+			"type": "wait",
+			"arg1": [2],
+			"result": [false]
+		},
+		{
+			"type": "output",
+			"arg1": [4],
+			"result": [false]
+		},
+		{
+			"type": "buzzer",
+			"arg1": [440],
+			"result": [false]
+		},
+		{
+			"type": "output",
+			"arg1": [1000],
+			"result": [true]
+		},
+		{
+			"type": "if",
+			"arg1": [18],
+			"result": [false]
+		},
+		{
+			"type": "output",
+			"arg1": [1000],
+			"result": [false]
+		},
+		{
+			"type": "lcd",
+			"msg": {
+				"fr": "Etape 1 : OK\nRebrancher cables",
+				"en": "Step 1 : Done\nReconnect wires"
+			}
+		},
+		{
+			"type": "if",
+			"arg1": [8,11],
+			"result": [true, true]
+		}
+	]
+}
