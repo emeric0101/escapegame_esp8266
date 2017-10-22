@@ -2,6 +2,14 @@
 	"time": 60,
 	"enigme": [
 		{
+			{
+			"type": "lcd",
+			"msg": {
+				"fr": "Armement des torpilles ",
+				"en": "Arming..."
+			}
+		},
+		{
 			"type": "output",
 			"arg1": [4,5,7],
 			"result": [true, true, true]

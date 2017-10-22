@@ -5,7 +5,7 @@ SequenceManager::SequenceManager(Hardware &hw) : hw(&hw)
   Serial.println("Init");
 }
 
-void SequenceManager::Init(int duration, Action* firstAction) {
+void SequenceManager::Init(Action* firstAction) {
 	  
   // Valeurs par defaut:
   	// led 3
@@ -22,6 +22,7 @@ void SequenceManager::Init(int duration, Action* firstAction) {
 	hw->DigitalWrite(1001, false);
 	hw->DigitalWrite(1002, false);
 	this->firstAction = firstAction;
+	this->current = NULL;
   
 }
 
@@ -44,9 +45,7 @@ void SequenceManager::Run()
     Serial.println("DONE");
     return;
   }
-  Serial.println("acting...");
   current->Run();
-  delay(1000);
   
   if (current->IsDone()) {
     current = current->GetNextAction();

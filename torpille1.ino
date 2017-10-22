@@ -1,17 +1,25 @@
 #include <ESP8266WiFi.h>
-
+#include <EEPROM.h>
 #include <Adafruit_MCP23017.h>
 #include <Wire.h> 
 #include <LiquidCrystal_I2C.h>
 #include "Hardware.h"
 #include "SequenceManager.h"
 #include "SequenceFactory.h"
+#include "Clock.h"
 
   Hardware hw;
   SequenceManager sequenceManager(hw);
-
-bool testMode = false;
+	SequenceFactory sequenceFactory(hw);
+enum Mode {
+	NORMAL,
+	TEST,
+	PROG
+};
+  
+Mode mode = NORMAL;
 Adafruit_MCP23017 mcp;
+Clock clock(3600);
 
 void i2c() {
 	Wire.begin();
@@ -53,11 +61,13 @@ void i2c() {
     Serial.println("done\n");
 
   delay(500);           // 
+
+
 }
 
 void setup(void){
 
-WiFi.mode(WIFI_OFF);
+	WiFi.mode(WIFI_OFF);
 	
 	Serial.begin(115600);
 	delay(1000);
@@ -74,37 +84,99 @@ WiFi.mode(WIFI_OFF);
 	
 	hw.Init();
 	//hw.Buzz(440);
-	hw.LcdMessage("HOLD J2 TO TEST MODE");
+	hw.LcdMessage("HOLD J2 TO TEST MODE\nHOLD J3 TO PROG MODE");
 	
 	for (int i=0;i<10;i++) {
-		hw.print(".");
 		if (hw.DigitalRead(1)) {
-			Serial.println("Test mode");
-			hw.LcdMessage("TEST MODE");
-			testMode = true;
+			hw.LcdMessage("-- TEST MODE --\n\nLoading...");
+			mode = TEST;
 			break;
+		}
+		else if (hw.DigitalRead(2)) {
+			hw.LcdMessage("-- PROG MODE --\n\nPlease see instruction in Serial");
+			mode = PROG;
+			break;
+
 		}
 		delay(500);
 	}
-	if (!testMode) {
-		hw.LcdMessage("Starting torpille...");
-		SequenceFactory sequenceFactory(hw);
-		sequenceFactory.Load("");
+	
+
+
+	if (mode == PROG) {
 		
-		sequenceManager.Init(sequenceFactory.GetDuration(), sequenceFactory.GetActions());
+		/**
+		Programmation : PROG puis entrée, saisir le JSON puis entrée, puis ;END; puis entrée
+		*/
+		//String jsontest = "{\"time\":60,\"enigme\":[{\"type\":\"output\",\"arg1\":[4,5,7],\"result\":[true,true,true]},{\"type\":\"if\",\"arg1\":[2,8,11],\"result\":[true,false,false]},{\"type\":\"if\",\"arg1\":[2],\"result\":[false]},{\"type\":\"wait\",\"arg1\":[2],\"result\":[false]},{\"type\":\"output\",\"arg1\":[4],\"result\":[false]},{\"type\":\"buzzer\",\"arg1\":[440],\"result\":[false]},{\"type\":\"output\",\"arg1\":[1000],\"result\":[true]},{\"type\":\"if\",\"arg1\":[18],\"result\":[false]},{\"type\":\"output\",\"arg1\":[1000],\"result\":[false]},{\"type\":\"lcd\",\"msg\":{\"fr\":\"Etape 1 : OK\nRebrancher cables\",\"en\":\"Step 1 : Done\nReconnect wires\"}},{\"type\":\"if\",\"arg1\":[8,11],\"result\":[true,true]}]}";
+		//Serial.println(jsontest);
+		Serial.println("Enter \"PROG\" then Enter, put your JSON then Enter, end with \";END;\" ");
+		bool valid = false;
+		// Verif chaine
+		while (!valid)
+		{
+			String data = Serial.readString();
+			if (data == "PROG") {
+				valid = true;
+			}
+			delay(10);
+
+		}
+		String currentChar = "";
+		String json = "";
+		Serial.println("JSON?");
+
+		while (currentChar != ";END;") {
+			currentChar = Serial.readString();
+			if (currentChar != ";END;")
+				json += currentChar;
+			delay(10);
+		}
+		Serial.println("Saving...");
+		Serial.println(json);
+		hw.LcdMessage("PROGRAMMING...");
+
+		sequenceFactory.SaveInEeprom(json);
+		hw.LcdMessage("DONE\n\nPLEASE RESTART");
+		while (true)
+		{
+			delay(1000);
+		}
 
 	}
+	if (mode == NORMAL) {
+		hw.LcdMessage("LOADING PROGRAM...");
+		if (!sequenceFactory.LoadFromEeprom()) {
+			Serial.println("Unable to load from EEPROM");
+			hw.LcdMessage("ERROR : UNABLE TO LOAD EEPROM\n\nNO PROGRAM");
+			while (true) {
+				delay(100);
+			}
+		}
 
-
-
-
-
+		Init();
+	}
 }
+
+void Init() {
+	hw.LcdMessage("STARTING PROGRAM...");
+	sequenceManager.Init(sequenceFactory.GetActions());
+	hw.LcdMessage("READY\n\nA1 to ON to start");
+	while (!hw.DigitalRead(22)) {
+		delay(100);
+	}
+	hw.LcdMessage("STARTING IN \n\n3");
+	delay(1000);		hw.LcdMessage("STARTING IN \n\n2");
+	delay(1000);		hw.LcdMessage("STARTING IN \n\n1");
+	delay(1000);		hw.LcdMessage("\n##### GO #####");
+	hw.Start();
+	clock.Init();
+}
+
 void loop()
 {
 	delay(50);	
-
-	if (testMode) {
+	if (mode == TEST) {
 		// Test solenoide
 
 		while (!hw.DigitalRead(2)) {
@@ -125,6 +197,10 @@ void loop()
 		}
 
 		for (int i=0;i<14;i++) {
+			hw.home();
+			String index(i);
+			hw.print("Testing led... ");
+			hw.print(index);
 			if (i != 0) {
 				hw.DigitalWrite(i-1, LOW);
 			}
@@ -133,7 +209,9 @@ void loop()
 		}
 		
 		
-		for (int i=17;i<21;i++) {
+		for (int i=18;i<22;i++) {
+			if (i == 15) continue;
+
 			hw.LcdMessage("");
 			String index(i);
 			if (hw.DigitalRead(i)) {
@@ -151,13 +229,33 @@ void loop()
 			}
 			hw.print(" OK");
 		}
-		testMode = false;
 		hw.LcdMessage("TEST DONE");
 	}
-	
+	else if (mode == NORMAL) 
+	{
+		hw.SetClock(clock.GetCountDownString());
+		if (clock.IsEnded()) {
+			hw.LcdMessage("TORPILLE READY...\n");
+			delay(3000);
+			String progress = "IGNITION...\n";
+			for (int i=0;i<15;i++) {
+				progress = progress + "#";
+				hw.LcdMessage(progress);
+				delay(500);
+			}
 
-	sequenceManager.Run();
+			hw.LcdMessage("GAME OVER\nPLEASE SET A1 OFF TO RESTART");
+			while (hw.DigitalRead(22)) {
+				delay(100);
+			}
+			Init();
+			return;
+		}
+		sequenceManager.Run();
 
+	}
+	// Manage bypass
+	hw.ManageBypass();
 }
 
 

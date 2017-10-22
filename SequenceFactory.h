@@ -18,9 +18,11 @@ class SequenceFactory
 {
   public:
 	SequenceFactory(Hardware &hw);
-	void Load(String scenario);
+	bool Load(String scenario);
 	int GetDuration();
 	Action* GetActions();
+	void SaveInEeprom(String json);
+	bool LoadFromEeprom();
   private:
 	Hardware &hw;
 	int duration = 0;

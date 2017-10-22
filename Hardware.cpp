@@ -25,7 +25,7 @@ void Hardware::Init()
 	
 	mcp1.begin(); // Utilise l'adresse par défaut qui est 0
 	mcp2.begin(4);
-	mcp3.begin(6);
+	mcp3.begin(3);
 	
 
  
@@ -53,9 +53,16 @@ void Hardware::Init()
 	mcp3.pinMode(8, INPUT);
 	mcp3.pinMode(9, INPUT);
 	mcp3.pinMode(10, INPUT);
+	mcp3.pinMode(11, INPUT); // A3
+	mcp3.pinMode(12, INPUT); // A1
+	mcp3.pinMode(13, INPUT); // A2
+	mcp3.pinMode(14, OUTPUT); // Next
 	mcp3.pullUp(8, HIGH);
 	mcp3.pullUp(9, HIGH);
 	mcp3.pullUp(10, HIGH);
+	mcp3.pullUp(11, HIGH);
+	mcp3.pullUp(12, HIGH);
+	mcp3.pullUp(13, HIGH);
 	
 	
 	for (int i=0; i<16;i++) {
@@ -64,9 +71,9 @@ void Hardware::Init()
 	}
 	
 	// Actionneurs charges
-	mcp3.pinMode(2, OUTPUT); // charge 1
-	mcp3.pinMode(3, OUTPUT); // charge 2
-	mcp3.pinMode(4, OUTPUT); // charge 3
+	mcp3.pinMode(0, OUTPUT); // charge 1
+	mcp3.pinMode(1, OUTPUT); // charge 2
+	mcp3.pinMode(2, OUTPUT); // charge 3
 	
 	delay(500);
 }
@@ -102,7 +109,15 @@ void Hardware::LcdMessage(String msg)
 	Serial.println(msg);
     lcd->clear();
 	lcd->home();
-	lcd->print(msg);
+	int cursorY = 0;
+	for (int i=0;i<msg.length();i++) {
+		if (msg[i] == '\n') {
+			lcd->setCursor(0, ++cursorY);
+			continue;
+		}
+		lcd->print(msg[i]);
+	}
+	SetClock(clockValue);
 }
 Adafruit_MCP23017 *Hardware::GetMcp1() {
 	return &mcp1;
@@ -110,7 +125,7 @@ Adafruit_MCP23017 *Hardware::GetMcp1() {
 
 bool Hardware::DigitalRead(int channel)
 {
-  if (channel < 16)  {
+  if (channel < 14)  {
 	  return mcp1.digitalRead(channel) == LOW;
   }
   if (channel == 16) 
@@ -119,19 +134,27 @@ bool Hardware::DigitalRead(int channel)
   if (channel == 17) 
 	  return mcp2.digitalRead(11) == LOW; // Key BYPASS
   
+  // capteur charge
   if (channel == 18)
 	return mcp3.digitalRead(8) == LOW;  
   if (channel == 19)
 	return mcp3.digitalRead(9) == LOW;  
   if (channel == 20)
 	return mcp3.digitalRead(10) == LOW;
-  
+
+
+  if (channel == 22) // A1 start
+	return mcp3.digitalRead(12) == LOW;
+	
+  if (channel == 23) // A2 
+	return mcp3.digitalRead(13) == LOW;
+
 	Serial.println("DigitalRead : out of range :");
 	Serial.println(channel);
   
 }
 
-int deviceAdress[] = {0x20, 0x24, 0x3f};
+int deviceAdress[] = {0x20, 0x23, 0x3f};
 
 bool Hardware::checkHardware() {
 	Wire.begin();
@@ -145,7 +168,7 @@ bool Hardware::checkHardware() {
 		error = Wire.endTransmission();
 		if (error != 0) {
 			Serial.print("A I2C DEVICE IS NOT FOUND");
-			Serial.println(deviceAdress[address]);
+
 
 			return false;
 		}
@@ -171,16 +194,19 @@ void Hardware::DigitalWrite(int channel, bool value)
 	if (channel == 13)
 		mcp2.digitalWrite(14, v); // LED C
 	
-	if (channel == 14) // Sortie vers enigme suivante
-		mcp3.digitalWrite(1, value);
 		
 	// Solenoides
 	if (channel == 1000) 
-		mcp3.digitalWrite(2, v);
+		mcp3.digitalWrite(0, v);
 	if (channel == 1001) 
-		mcp3.digitalWrite(3, v);
+		mcp3.digitalWrite(1, v);
 	if (channel == 1002) 
-		mcp3.digitalWrite(4, v);
+		mcp3.digitalWrite(2, v);
+	
+	  // next
+	  if (channel == 100) {
+		mcp3.digitalWrite(14, v);
+	  }
 	
 
 }
@@ -190,5 +216,35 @@ String Hardware::GetLanguage() {
 		return "fr";
 	}
 	return "en";
+}
+
+void Hardware::SetClock(String value)
+{
+	clockValue = value;
+	lcd->setCursor(15, 3);
+	lcd->print(clockValue);
+}
+
+/**
+* Gère le bypass de la torpille, ignoré si finished == true
+*/
+void Hardware::ManageBypass()
+{
+	// Bypass
+	if (!finished)
+		DigitalWrite(100, DigitalRead(17));
+		//hw.DigitalWrite(21, hw.DigitalRead(17));
+}
+
+void Hardware::Finish()
+{
+	finished = true;
+	DigitalWrite(100, true);
+}
+
+void Hardware::Start() 
+{
+	finished = false;
+	DigitalWrite(100, false);
 }
 
