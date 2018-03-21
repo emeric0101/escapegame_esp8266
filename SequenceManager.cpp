@@ -23,7 +23,6 @@ void SequenceManager::Init(Action* firstAction) {
 	hw->DigitalWrite(1002, false);
 	this->firstAction = firstAction;
 	this->current = NULL;
-  
 }
 
 
@@ -43,12 +42,15 @@ void SequenceManager::Run()
   if (current == NULL) {
     current = firstAction;
     Serial.println("DONE");
+	idStep = 0;
     return;
   }
   current->Run();
   
   if (current->IsDone()) {
     current = current->GetNextAction();
+	Serial.print("STEP : ");
+	Serial.println(idStep++);
   }
 }
 

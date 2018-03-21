@@ -1,6 +1,6 @@
 #include "Finish.h"
 
-Finish::Finish(IFinish *finish, Action *next) : Action(next), mFinish(finish)
+Finish::Finish( Action *next, IFinish *finish) : Action(next), mFinish(finish)
 {
   
 }

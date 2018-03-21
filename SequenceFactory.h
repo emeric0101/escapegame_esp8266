@@ -11,6 +11,8 @@
 #include "LCD.h"
 #include "Output.h"
 #include "Wait.h"
+#include "Ifraz.h"
+#include "Finish.h"
 
 
 

@@ -12,7 +12,7 @@ Action* SequenceFactory::GetActions() {
 
 void SequenceFactory::SaveInEeprom(String json) {
 	int jsonSize = json.length()+1;
-	EEPROM.begin(10000);
+	EEPROM.begin(20000);
 	Serial.println(jsonSize);
 	EEPROM.write(0, highByte(jsonSize)); //write the first half
 	EEPROM.write(1, lowByte(jsonSize)); //write the second half
@@ -25,7 +25,7 @@ void SequenceFactory::SaveInEeprom(String json) {
 
 bool SequenceFactory::LoadFromEeprom()
 {
-	EEPROM.begin(10000);
+	EEPROM.begin(20000);
 	Serial.println("Reading EEPROM...");
 	byte high = EEPROM.read(0); //read the first half
 	byte low = EEPROM.read(1); //read the second half
@@ -92,7 +92,12 @@ bool SequenceFactory::Load(String scenario)
 		if (type == "wait") {
 			currentAction = new Wait(NULL, args[0].channel);
 		}
-		
+		if (type == "ifraz") {
+			currentAction = new Ifraz(NULL, &hw);
+		}
+		if (type =="finish") {
+			currentAction = new Finish(NULL, &hw);
+		}
 		if (firstAction == NULL)
 			firstAction = currentAction;
 		else

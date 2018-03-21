@@ -21,6 +21,7 @@ class SequenceManager
     Hardware *hw;
     Action *firstAction = NULL;
     Action *current = NULL;
+	int idStep;
 };
 
 #endif

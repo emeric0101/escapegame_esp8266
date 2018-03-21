@@ -1,4 +1,5 @@
 #include "Hardware.h"
+#define SKIP_I2C_TEST false
 
 Hardware::Hardware() 
 {
@@ -14,9 +15,11 @@ Hardware::~Hardware()
 void Hardware::Init()
 {
 	// Check i2c connection for IO
+#if !SKIP_I2C_TEST
 	while (!checkHardware()) {
 		delay(1000);
 	}
+ #endif
 	// Initialise l'ecran LCD
 	lcd = new LiquidCrystal_I2C(SCREEN_ADDRESS,20,4);
 	lcd->init();
@@ -74,6 +77,9 @@ void Hardware::Init()
 	mcp3.pinMode(0, OUTPUT); // charge 1
 	mcp3.pinMode(1, OUTPUT); // charge 2
 	mcp3.pinMode(2, OUTPUT); // charge 3
+	mcp3.digitalWrite(0, LOW);
+	mcp3.digitalWrite(1, LOW);
+	mcp3.digitalWrite(2, LOW);
 	
 	delay(500);
 }
@@ -125,6 +131,12 @@ Adafruit_MCP23017 *Hardware::GetMcp1() {
 
 bool Hardware::DigitalRead(int channel)
 {
+//	if( channel < 8)
+//		return mcp1.digitalRead(channel) == HIGH;
+	/*if (channel == 0) { // Source n'est plus utilisé
+		return mcp1.digitalRead(5) == LOW;
+	}*/
+	
   if (channel < 14)  {
 	  return mcp1.digitalRead(channel) == LOW;
   }

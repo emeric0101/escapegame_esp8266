@@ -8,6 +8,8 @@
 #include "SequenceFactory.h"
 #include "Clock.h"
 
+
+
   Hardware hw;
   SequenceManager sequenceManager(hw);
 	SequenceFactory sequenceFactory(hw);
@@ -73,26 +75,24 @@ void setup(void){
 	delay(1000);
 	
 	Serial.println();
-
 	i2c();
-
 	
 	Serial.println();
-	Serial.println("AGENCE LESS IS MORE SAS - 2017 Tous droits réservés.");
+	Serial.println("AGENCE LESS IS MORE SAS - 2018 Tous droits réservés.");
 	delay(1000);
-	Serial.println("ESPCTRT 1.0");
+	Serial.println("ESPCTRT 1.1");
 	
 	hw.Init();
-	//hw.Buzz(440);
-	hw.LcdMessage("HOLD J2 TO TEST MODE\nHOLD J3 TO PROG MODE");
+	hw.Buzz(440);
+	hw.LcdMessage("HOLD B1 TO TEST MODE\nHOLD B2 TO PROG MODE");
 	
 	for (int i=0;i<10;i++) {
-		if (hw.DigitalRead(1)) {
+		if (hw.DigitalRead(8)) {
 			hw.LcdMessage("-- TEST MODE --\n\nLoading...");
 			mode = TEST;
 			break;
 		}
-		else if (hw.DigitalRead(2)) {
+		else if (hw.DigitalRead(9)) {
 			hw.LcdMessage("-- PROG MODE --\n\nPlease see instruction in Serial");
 			mode = PROG;
 			break;
@@ -179,16 +179,16 @@ void loop()
 	if (mode == TEST) {
 		// Test solenoide
 
-		while (!hw.DigitalRead(2)) {
+		while (!hw.DigitalRead(9)) {
 			hw.home();
-			hw.print("PUSH J3 HIGH");
+			hw.print("PUSH LBlue to exit : HIGH");
 			hw.DigitalWrite(1000, HIGH);
 			hw.DigitalWrite(1001, HIGH);
 			hw.DigitalWrite(1002, HIGH);
 			hw.home();
 			delay(1000);
 
-			hw.print("PUSH J3 LOW");
+			hw.print("PUSH LBLUe to exit : LOW");
 			hw.DigitalWrite(1000, LOW);
 			hw.DigitalWrite(1001, LOW);
 			hw.DigitalWrite(1002, LOW);
@@ -209,15 +209,18 @@ void loop()
 		}
 		
 		
-		for (int i=18;i<22;i++) {
+		for (int i=0;i<14;i++) {
 			if (i == 15) continue;
+			if (i== 5) continue;
 
 			hw.LcdMessage("");
 			String index(i);
+			Serial.print("Testing J");
+			Serial.println(i);
 			if (hw.DigitalRead(i)) {
-				hw.print("ERROR J ");
+				hw.print("ERROR B1 to continue");
 				hw.print(index);
-				while (!hw.DigitalRead(1)) {
+				while (!hw.DigitalRead(8)) {
 					delay(100);
 				}
 			}
@@ -234,14 +237,15 @@ void loop()
 	else if (mode == NORMAL) 
 	{
 		hw.SetClock(clock.GetCountDownString());
-		if (clock.IsEnded()) {
+		// si fin du jeu (time ou manuel)
+		if (clock.IsEnded() || !hw.DigitalRead(22)) {
 			hw.LcdMessage("TORPILLE READY...\n");
-			delay(3000);
+			delay(2000);
 			String progress = "IGNITION...\n";
 			for (int i=0;i<15;i++) {
 				progress = progress + "#";
 				hw.LcdMessage(progress);
-				delay(500);
+				delay(100);
 			}
 
 			hw.LcdMessage("GAME OVER\nPLEASE SET A1 OFF TO RESTART");
@@ -256,6 +260,7 @@ void loop()
 	}
 	// Manage bypass
 	hw.ManageBypass();
+
 }
 
 

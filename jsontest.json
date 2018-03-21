@@ -2,7 +2,7 @@
 	"time": 60,
 	"enigme": [
 		{
-			{
+			
 			"type": "lcd",
 			"msg": {
 				"fr": "Armement des torpilles ",

@@ -19,7 +19,12 @@ void If::Run()
   result = true;
   for (int i=0;i<conditionSize;i++)
   {
+	/*  Serial.print(" | ");
+	  Serial.print(conditions[i].channel);
+	  Serial.print(" ");
+	  Serial.print((mInput->DigitalRead(conditions[i].channel) == conditions[i].result));*/
     result *= (mInput->DigitalRead(conditions[i].channel) == conditions[i].result);
   }
+  //.println();
 }
 
